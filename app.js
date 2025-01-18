@@ -1,69 +1,62 @@
 const elements = document.getElementsByClassName("form-check-input");
+const API_BASE = "https://ihatov08.github.io/kimetsu_api/api";
+const END_POINTS = {
+    '全て': `${API_BASE}/all.json`,
+    '鬼殺隊': `${API_BASE}/kisatsutai.json`,
+    '柱': `${API_BASE}/hashira.json`,
+    '鬼': `${API_BASE}/oni.json`
+}
 
-console.log(elements)
-const allUrl = "https://ihatov08.github.io/kimetsu_api/api/all.json"
-const hasiraUrl = "https://ihatov08.github.io/kimetsu_api/api/hashira.json"
-const oniUrl = "https://ihatov08.github.io/kimetsu_api/api/oni.json"
-const kistutaiUrl = "https://ihatov08.github.io/kimetsu_api/api/kisatsutai.json"
+const loadingIndicator = document.getElementById("loading");
+const characterList = document.getElementById("character-list");
 
-for(element of elements){
-    // console.log(element)
-    console.log(element.value)
-    element.addEventListener('change',async function(){
-        console.log(this.value);
-        switch (this.value){
-            case 'option1':
-                if( this.checked ) {
-                    console.log('全キャラクター');
-                    let data = await fetchDataAndPrint(allUrl)
-                    console.log(data)
-                    displayData(data)
-                }
-                break;
-            case 'option2':
-                if( this.checked ) {
-                    console.log('鬼殺隊');
-                    let data = await fetchDataAndPrint(hasiraUrl)
-                    console.log(data)
-                }
-                break;
-            case 'option3':
-                if( this.checked ) {
-                    console.log('柱');
-                    let data = await fetchDataAndPrint(oniUrl)
-                    console.log(data)
-                break;
-                }
-            case 'option4':
-                if( this.checked ) {
-                    console.log('鬼');
-                    let data = await fetchDataAndPrint(kistutaiUrl)
-                    console.log(data)
-                }
-                break;
-            default:
-                console.log('住所はその他です');
-        
-        }
+document.querySelectorAll('input[name="category"]').forEach(radio =>{
+    radio.addEventListener('change', async (event)=>{
+        console.log(111)
+        const category = event.target.value;
+        await fetchAndRenderCharacters(category);
     })
-}
-async function fetchDataAndPrint(url) {
+})
+// 初期表示: 全キャラクター
+fetchAndRenderCharacters("全て");
+
+async function fetchAndRenderCharacters(category) {
+    // ローディングを表示
+    loadingIndicator.classList.remove("d-none");
+    characterList.classList.add("d-none");
+    characterList.innerHTML = ""; // 前回のデータをクリア
+
     try {
-        let response = await fetch(url);
-        let data = await response.json();
-        // console.log(data);
-        return data;
+        const response = await fetch(END_POINTS[category]);
+        const characters = await response.json();
+
+        if (characters.length === 0) {
+            characterList.innerHTML = "<p class='text-center'>データがありません</p>";
+        } else {
+            characters.forEach(character => {
+            characterList.innerHTML += createCharacterCard(character);
+            });
+        }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error fetching data:", error);
+        characterList.innerHTML = "<p class='text-center text-danger'>データの取得に失敗しました</p>";
+    } finally {
+        // ローディングを非表示
+        loadingIndicator.classList.add("d-none");
+        characterList.classList.remove("d-none");
     }
 }
 
-function displayData(data){
-    let parent_element = document.createElement('div');
-    for(let i =0; i<data.length; i++){
-        
-
-
-    }
-
+function createCharacterCard(character) {
+    return `
+    <div class="col-md-4">
+        <div class="card h-100">
+            <img src="https://ihatov08.github.io${character.image}" class="card-img-top" alt="${character.name}">
+            <div class="card-body">
+                <h5 class="card-title">${character.name}</h5>
+                <p class="card-text">${character.category}</p>
+            </div>
+        </div>
+    </div>
+    `;
 }
