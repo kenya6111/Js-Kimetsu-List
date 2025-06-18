@@ -1,33 +1,24 @@
 const elements = document.getElementsByClassName("form-check-input");
 const API_BASE = "https://ihatov08.github.io/kimetsu_api/api";
-const END_POINTS = {
-    '全て': `${API_BASE}/all.json`,
-    '鬼殺隊': `${API_BASE}/kisatsutai.json`,
-    '柱': `${API_BASE}/hashira.json`,
-    '鬼': `${API_BASE}/oni.json`
-}
-
 const loadingIndicator = document.getElementById("loading");
 const characterList = document.getElementById("character-list");
 
 document.querySelectorAll('input[name="category"]').forEach(radio =>{
     radio.addEventListener('change', async (event)=>{
-        console.log(111)
-        const category = event.target.value;
-        await fetchAndRenderCharacters(category);
+        await fetchAndRenderCharacters(event);
     })
 })
 // 初期表示: 全キャラクター
-fetchAndRenderCharacters("全て");
+fetchAndRenderCharacters({ target: { value: "all" } });
 
-async function fetchAndRenderCharacters(category) {
+async function fetchAndRenderCharacters(event) {
     // ローディングを表示
     loadingIndicator.classList.remove("d-none");
     characterList.classList.add("d-none");
     characterList.innerHTML = ""; // 前回のデータをクリア
 
     try {
-        const response = await fetch(END_POINTS[category]);
+        const response = await fetch(`${API_BASE}/${event.target.value}.json`);
         const characters = await response.json();
 
         if (characters.length === 0) {
